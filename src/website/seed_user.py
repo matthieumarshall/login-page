@@ -2,16 +2,16 @@
 CLI script to add a user to the database.
 
 Usage:
-    python seed_user.py <username> <password>
+    python -m website.seed_user <username> <password>
 
 Example:
-    python seed_user.py alice mysecretpassword
+    python -m website.seed_user alice mysecretpassword
 """
 
 import sys
-from database import engine, SessionLocal
-from models import Base, User
-from auth import hash_password
+from website.database import engine, SessionLocal
+from website.models import Base, User
+from website.auth import hash_password
 
 # Ensure tables exist
 Base.metadata.create_all(bind=engine)
@@ -35,7 +35,7 @@ def add_user(username: str, password: str):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python seed_user.py <username> <password>")
+        print("Usage: python -m website.seed_user <username> <password>")
         sys.exit(1)
 
     add_user(sys.argv[1], sys.argv[2])

@@ -6,9 +6,9 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
-from database import engine, get_db
-from models import Base, User
-from auth import verify_password
+from website.database import engine, get_db
+from website.models import Base, User
+from website.auth import verify_password
 
 # Create DB tables on startup
 Base.metadata.create_all(bind=engine)

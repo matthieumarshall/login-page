@@ -49,6 +49,11 @@ Thumbs.db
 # Logs
 *.log
 
+# Coverage
+.coverage
+htmlcov/
+coverage.json
+
 # Node.js
 node_modules/
 

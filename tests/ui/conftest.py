@@ -10,8 +10,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from playwright.sync_api import sync_playwright  # type: ignore[import-untyped]
 
-from models import Base, User
-from auth import hash_password
+from website.models import Base, User
+from website.auth import hash_password
 
 
 def generate_random_password(length=12):
@@ -55,7 +55,7 @@ def server_process():
             "python",
             "-m",
             "uvicorn",
-            "main:app",
+            "website.main:app",
             "--host",
             "127.0.0.1",
             "--port",

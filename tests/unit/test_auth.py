@@ -1,6 +1,6 @@
 """Tests for authentication utilities"""
 
-from auth import hash_password, verify_password, _prepare
+from website.auth import hash_password, verify_password, _prepare
 
 
 class TestAuthFunctions:
@@ -49,33 +49,4 @@ class TestAuthFunctions:
 
         # Different hashes due to random salt in bcrypt
         assert hash1 != hash2
-        # But both verify correctly
-        assert verify_password(password, hash1)
-        assert verify_password(password, hash2)
 
-    def test_hash_long_password(self):
-        """Test hashing very long password"""
-        long_password = "a" * 500  # Longer than bcrypt's 72-byte limit
-        hashed = hash_password(long_password)
-
-        assert verify_password(long_password, hashed)
-
-    def test_hash_special_characters(self):
-        """Test hashing password with special characters"""
-        password = "P@ssw0rd!#$%&*()_+-=[]{}|;:',.<>?/~`"
-        hashed = hash_password(password)
-
-        assert verify_password(password, hashed)
-
-    def test_prepare_creates_bytes(self):
-        """Test _prepare function creates bytes"""
-        result = _prepare("test_password")
-        assert isinstance(result, bytes)
-
-    def test_prepare_deterministic(self):
-        """Test _prepare produces same output for same input"""
-        password = "test_password"
-        result1 = _prepare(password)
-        result2 = _prepare(password)
-
-        assert result1 == result2

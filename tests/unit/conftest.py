@@ -5,10 +5,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 
-from models import Base, User
-from database import get_db
-from main import app
-from auth import hash_password
+from website.models import Base, User
+from website.database import get_db
+from website.main import app
+from website.auth import hash_password
 
 
 def generate_random_password(length=12):
