@@ -8,7 +8,7 @@ import string
 import secrets
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright  # type: ignore[import-untyped]
 
 from models import Base, User
 from auth import hash_password
