@@ -83,9 +83,7 @@ jobs:
           pip-audit || exit 1
       
       - name: gitleaks - Scan for secrets
-        run: |
-          echo "Running gitleaks for secret detection..."
-          npx gitleaks@latest detect --verbose --exit-code 1 || exit 1
+        uses: gitleaks/gitleaks-action@v2
       
       - name: Generate SBOM with pip list
         run: |

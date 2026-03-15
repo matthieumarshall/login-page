@@ -1,6 +1,5 @@
 """Tests for FastAPI routes and main application"""
 
-from fastapi.testclient import TestClient
 
 
 class TestHomeRoute:

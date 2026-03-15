@@ -1,8 +1,6 @@
 """Tests for database session management"""
 
-from sqlalchemy import inspect
 from website.models import User
-from website.database import engine
 
 
 class TestDatabase:
