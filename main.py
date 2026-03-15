@@ -17,7 +17,7 @@ app = FastAPI()
 
 # Secret key for signing session cookies — change this to a long random string in production
 app.add_middleware(
-    SessionMiddleware,
+    SessionMiddleware,  # type: ignore[arg-type]
     secret_key=os.environ.get("SECRET_KEY", "change-me-in-production"),
 )
 
@@ -67,7 +67,7 @@ def login_submit(
     db: Session = Depends(get_db),
 ):
     user = db.query(User).filter(User.username == username).first()
-    if not user or not verify_password(password, user.hashed_password):
+    if not user or not verify_password(password, str(user.hashed_password)):
         return templates.TemplateResponse(
             "login.html",
             {
