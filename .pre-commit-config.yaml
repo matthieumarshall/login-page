@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.5
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: ty
+        name: ty
+        language: system
+        entry: uv run ty check
+        pass_filenames: false
+
+      - id: html-validate
+        name: html-validate
+        language: system
+        entry: npx --no-install html-validate
+        files: ^templates/.*\.html$

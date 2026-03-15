@@ -1,0 +1,26 @@
+[build]
+verbose = false
+
+[secrets]
+entropy = 3.5
+threshold = 3.5
+
+[[rules]]
+description = "Exclude npm lockfile"
+regex = "^node_modules/"
+tags = ["exclude"]
+
+[[rules]]
+description = "Exclude Python cache"
+regex = "^__pycache__/"
+tags = ["exclude"]
+
+[[rules]]
+description = "Exclude venv"
+regex = "^.venv/"
+tags = ["exclude"]
+
+[[rules]]
+description = "Exclude test database"
+regex = "test_.*\\.db"
+tags = ["exclude"]

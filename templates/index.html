@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Home — My Website{% endblock %}
+
+{% block content %}
+<div class="px-4 py-5 text-center">
+  <h1 class="display-5 fw-bold">Welcome to My Website</h1>
+  <p class="col-lg-6 mx-auto lead text-muted">
+    This is a simple home page. Use the button in the top right to log in.
+  </p>
+  {% if current_user %}
+    <p class="text-success">You are logged in as <strong>{{ current_user.username }}</strong>.</p>
+  {% endif %}
+</div>
+{% endblock %}
