@@ -21,6 +21,7 @@ regex = "^.venv/"
 tags = ["exclude"]
 
 [[rules]]
+id = "test-db-exclude"
 description = "Exclude test database"
 regex = "test_.*\\.db"
 tags = ["exclude"]
