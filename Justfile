@@ -10,3 +10,7 @@ sync:
 # Run pre-commit hooks on all files.
 lint:
     uv run python -m pre_commit run --all-files
+
+# Start the development server with auto-reload.
+serve:
+    uv run uvicorn website.main:app --reload

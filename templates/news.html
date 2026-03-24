@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Home / News — My Website{% endblock %}
+
+{% block content %}
+<div>
+  <h1 class="h3 mb-3">Home / News</h1>
+  {% if current_user %}
+    <p class="text-success">You are logged in as <strong>{{ current_user.username }}</strong>.</p>
+  {% endif %}
+  <p class="text-muted">News and updates will appear here.</p>
+</div>
+{% endblock %}
