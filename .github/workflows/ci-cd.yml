@@ -29,9 +29,7 @@ jobs:
           node-version: "18"
 
       - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev,test]"
+        run: uv sync --all-extras
 
       - name: Install Node dependencies
         run: npm ci
@@ -70,9 +68,7 @@ jobs:
           node-version: "18"
 
       - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev,test]"
+        run: uv sync --all-extras
 
       - name: Install Node dependencies
         run: npm ci
@@ -82,7 +78,7 @@ jobs:
           echo "Running pip-audit for Python dependency vulnerabilities..."
           # Note: CVE-2026-4539 in pygments 2.19.2 (via pytest) has no patch yet.
           # Requires local access; low risk. Awaiting upstream fix.
-          pip-audit --ignore CVE-2026-4539 || exit 1
+          uv run pip-audit --ignore CVE-2026-4539 || exit 1
 
       - name: gitleaks - Scan for secrets
         uses: gitleaks/gitleaks-action@v2
@@ -92,14 +88,12 @@ jobs:
       - name: bandit - Python SAST scan
         run: |
           echo "Running bandit static analysis..."
-          pip install bandit
-          bandit -r src/ -ll --skip B101 -f json -o bandit-report.json || true
-          bandit -r src/ -ll --skip B101
+          uv run bandit -r src/ -ll --skip B101 -f json -o bandit-report.json || true
+          uv run bandit -r src/ -ll --skip B101
 
       - name: semgrep - OWASP & Python rule scan
         run: |
-          pip install semgrep
-          semgrep scan --config p/owasp-top-ten --config p/python src/ --error
+          uv run semgrep scan --config p/owasp-top-ten --config p/python src/ --error
 
       - name: Generate SBOM with pip list
         run: |
@@ -166,9 +160,7 @@ jobs:
         run: pip install uv
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev,test]"
+        run: uv sync --all-extras
 
       - name: Run pytest with coverage
         run: |
@@ -219,9 +211,7 @@ jobs:
           node-version: "18"
 
       - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev,test]"
+        run: uv sync --all-extras
 
       - name: Install Node dependencies
         run: npm ci
