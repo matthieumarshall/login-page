@@ -80,7 +80,9 @@ jobs:
       - name: pip-audit - Check for vulnerable dependencies
         run: |
           echo "Running pip-audit for Python dependency vulnerabilities..."
-          pip-audit || exit 1
+          # Note: CVE-2026-4539 in pygments 2.19.2 (via pytest) has no patch yet.
+          # Requires local access; low risk. Awaiting upstream fix.
+          pip-audit --ignore CVE-2026-4539 || exit 1
 
       - name: gitleaks - Scan for secrets
         uses: gitleaks/gitleaks-action@v2
