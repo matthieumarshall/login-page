@@ -1,0 +1,90 @@
+# Project Guidelines
+
+## Architecture
+
+This is a monorepo containing a **FastAPI** backend and a server-rendered frontend using **HTMX** for interactivity.
+
+```
+src/website/     # FastAPI application (Python package)
+static/          # CSS and any minimal JS
+templates/       # Jinja2 HTML templates
+tests/unit/      # pytest unit tests
+tests/ui/        # Playwright end-to-end tests
+data/            # Local parquet data lake (gitignored except schema/seed fixtures)
+```
+
+The backend owns all routing, auth, and data access. The frontend is thin: Jinja2 templates + HTMX attributes for dynamic behaviour. Reach for plain JavaScript only when HTMX cannot express the interaction.
+
+## Python & FastAPI
+
+- **Dependency management**: always use `uv`. Add runtime deps with `uv add <pkg>`, dev/test deps with `uv add --dev <pkg>` or `uv add --optional dev <pkg>`.
+- **SOLID in practice**:
+  - One responsibility per module: `auth.py` for credential logic, `database.py` for DuckDB connection setup, `models.py` for dataclass/Pydantic schemas, `main.py` for route wiring only.
+  - Depend on abstractions: pass a `duckdb.DuckDBPyConnection` via `Depends(get_db)`, not global state.
+  - Prefer small, focused functions over large route handlers; extract business logic out of route functions.
+- **Type hints** on all function signatures.
+- **Linting / formatting**: `ruff` (enforced by pre-commit). Do not disable rules without a comment explaining why.
+- **No magic globals**: configuration comes from environment variables, never hardcoded in source.
+
+## Database
+
+The data layer uses **DuckDB** querying a local **Parquet data lake** (files under `data/`).
+
+- **Connection**: open a single per-request connection via `get_db()` in `database.py`; inject with `Depends(get_db)` and always close with a `try/finally` or a context manager.
+- **Parquet layout**: one file (or partitioned directory) per logical table, e.g. `data/users.parquet`. Use DuckDB's `CREATE OR REPLACE TABLE … AS SELECT` pattern to materialise views when needed.
+- **Queries**: use DuckDB's parameterised queries (`con.execute(sql, [params])`) — never f-strings or string concatenation in SQL.
+- **Writes**: use `INSERT INTO` or `COPY … TO '…parquet'` via DuckDB; keep write helpers in `database.py` or a dedicated `repository.py`.
+- **Schema evolution**: version schema changes with plain SQL migration scripts in `migrations/` (e.g. `0001_add_users.sql`). Apply them in order; do not use Alembic (no SQLAlchemy ORM in this project).
+- **Testing**: use an in-memory DuckDB database (`:memory:`) in unit tests; never read or write the real `data/` directory in tests.
+- **`data/` hygiene**: add `data/` to `.gitignore`. Commit only seed fixtures for local dev (e.g. `data/seed/`) and document how to regenerate them.
+
+## Frontend
+
+- Use **HTMX** attributes (`hx-get`, `hx-post`, `hx-target`, `hx-swap`) for partial page updates before writing custom JS.
+- Return HTML fragments from FastAPI endpoints that are intended for HTMX responses.
+- Keep `static/style.css` minimal — prefer semantic HTML and browser defaults over heavy styling frameworks.
+- JavaScript files live in `static/`. Only add a JS file when there is no HTMX alternative.
+
+## Security
+
+Follow OWASP Top 10 mitigations by default:
+
+| Concern | Convention in this project |
+|---|---|
+| **Secrets** | All secrets via environment variables. `SECRET_KEY` must be overridden in production; never commit real values. |
+| **Passwords** | bcrypt via `auth.py` (`hash_password` / `verify_password`). Never roll a custom scheme. |
+| **Session cookies** | `SessionMiddleware` with `https_only=True` and `same_site="lax"` in production. |
+| **SQL injection** | DuckDB parameterised queries only (`con.execute(sql, [params])`). Never use f-strings or `%`-formatting in SQL. |
+| **XSS** | Jinja2 auto-escaping is always on. Never use `| safe` on user-supplied data. |
+| **CSRF** | Include a CSRF token for all state-changing forms. |
+| **Security headers** | Set `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, and `Strict-Transport-Security` via middleware or a reverse proxy. |
+| **Dependencies** | Run `uv run pip-audit` before releases to catch known CVEs. |
+| **Input validation** | Validate all user input with Pydantic models or FastAPI's built-in form validation. |
+
+## Testing
+
+- **Unit tests** in `tests/unit/` using `pytest`. Cover auth, models, and route logic with mocked DB sessions.
+- **UI tests** in `tests/ui/` using Playwright (`pytest-playwright`).
+- Run all tests: `uv run pytest`
+- Run with coverage: `uv run pytest --cov=src/website`
+
+## Build & Dev Commands
+
+All common tasks use [Just](https://github.com/casey/just):
+
+```sh
+just sync   # install Python + Node deps and set up pre-commit hooks
+just lint   # run all pre-commit hooks (ruff, etc.)
+```
+
+Start the dev server:
+```sh
+uv run uvicorn website.main:app --reload
+```
+
+## Conventions
+
+- Keep routes thin: validate input → call a service/helper → return a response.
+- Avoid adding new dependencies without justification; prefer the standard library or existing project deps.
+- Database schema changes go in numbered SQL scripts under `migrations/`; never mutate the schema inside application code at startup.
+- Log at `WARNING` or above in production; never log passwords, tokens, or PII.

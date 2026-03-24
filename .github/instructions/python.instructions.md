@@ -1,0 +1,87 @@
+---
+description: "Use when writing, reviewing, or refactoring Python files. Covers FastAPI route design, dependency injection, DuckDB data access, Pydantic models, error handling, and code style for this project."
+applyTo: "**/*.py"
+---
+
+# Python Coding Standards
+
+## Style & Formatting
+
+- **Formatter / linter**: `ruff` — enforced by pre-commit. Never disable a rule without a comment explaining why.
+- All functions and methods must have **type hints** on every parameter and the return type.
+- Use `snake_case` for functions and variables, `PascalCase` for classes.
+- Maximum line length: 88 characters (ruff default).
+- Prefer explicit `return` types over implicit `None`.
+
+## Module Responsibilities (SOLID)
+
+| Module | Owns |
+|--------|------|
+| `main.py` | Route declarations, middleware wiring — no business logic |
+| `auth.py` | Password hashing and verification only |
+| `database.py` | DuckDB connection factory (`get_db`) and write helpers |
+| `models.py` | Pydantic schemas and dataclasses — no I/O |
+| `repository.py` | Data-access functions (queries/writes) — one per domain entity |
+
+Never let a route handler contain SQL, hashing, or direct file I/O — delegate to the appropriate module.
+
+## FastAPI Routes
+
+```python
+# Good — thin handler
+@app.post("/login")
+def login(form: LoginForm, db: duckdb.DuckDBPyConnection = Depends(get_db)) -> HTMLResponse:
+    user = get_user_by_username(db, form.username)
+    if not user or not verify_password(form.password, user.password_hash):
+        raise HTTPException(status_code=401)
+    ...
+```
+
+- One route per handler function; no shared mutable state between requests.
+- Always use `Depends(get_db)` — never open a connection directly inside a route.
+- Return `HTMLResponse` or an HTML fragment for HTMX endpoints; use `RedirectResponse` for post-login/logout flows.
+- Raise `HTTPException` with appropriate status codes rather than returning error dicts.
+
+## Dependency Injection & Database
+
+```python
+# database.py — connection factory
+from contextlib import contextmanager
+import duckdb
+
+def get_db() -> Generator[duckdb.DuckDBPyConnection, None, None]:
+    con = duckdb.connect()
+    try:
+        yield con
+    finally:
+        con.close()
+```
+
+- Every route that touches data must receive a connection via `Depends(get_db)`.
+- **Always** use parameterised queries. Never use f-strings or `%`-formatting in SQL:
+  ```python
+  # Good
+  con.execute("SELECT * FROM users WHERE username = ?", [username])
+  # Bad — SQL injection risk
+  con.execute(f"SELECT * FROM users WHERE username = '{username}'")
+  ```
+- Writes must use `INSERT INTO … VALUES (?, ?)` or `COPY … TO '…parquet'`; keep them in `repository.py` or `database.py`.
+
+## Pydantic Models
+
+- Define all request/response shapes as `pydantic.BaseModel` subclasses in `models.py`.
+- Validate at the boundary — do not re-validate inside service functions that receive already-validated models.
+- Use `model_config = ConfigDict(frozen=True)` for read-only value objects.
+
+## Error Handling
+
+- Raise `HTTPException` for client errors (4xx); let FastAPI's exception handler render them.
+- Let unexpected exceptions propagate to a global exception handler — do not silence them with bare `except Exception`.
+- Log errors at `ERROR` level; never log passwords, tokens, or any PII.
+
+## Testing
+
+- Unit tests live in `tests/unit/`; use `pytest` with an in-memory DuckDB connection (`:memory:`).
+- Mock the database connection using `monkeypatch` or `pytest` fixtures — never touch `data/` in tests.
+- Aim for one test file per source module (e.g. `test_auth.py` tests `auth.py`).
+- Use `httpx.AsyncClient` with `app` for route-level tests.
