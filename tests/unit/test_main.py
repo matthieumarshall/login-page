@@ -33,9 +33,14 @@ class TestHomeRoute:
         self, test_client, test_user, test_user_creds
     ):
         """Test home page accessible with authentication"""
-        # Login first
-        response = test_client.post(
-            "/login", data=test_user_creds, follow_redirects=True
+        # GET /login first to establish session and get CSRF token
+        login_page = test_client.get("/login")
+        match = re.search(r'name="csrf_token"\s+value="([^"]+)"', login_page.text)
+        assert match, "No CSRF token found in login form"
+        test_client.post(
+            "/login",
+            data={**test_user_creds, "csrf_token": match.group(1)},
+            follow_redirects=True,
         )
 
         # Navigate to home
