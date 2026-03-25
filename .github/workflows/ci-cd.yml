@@ -165,7 +165,7 @@ jobs:
       - name: Run pytest with coverage
         run: |
           echo "Running unit tests with coverage..."
-          pytest --cov=. --cov-report=html --cov-report=json --cov-report=term-missing --tb=short
+          uv run pytest --cov=. --cov-report=html --cov-report=json --cov-report=term-missing --tb=short
 
       - name: Display coverage summary
         run: |
@@ -222,7 +222,7 @@ jobs:
       - name: Run Playwright tests
         run: |
           echo "Running UI tests..."
-          pytest tests/ui/ -v --tb=short
+          uv run pytest tests/ui/ -v --tb=short
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
