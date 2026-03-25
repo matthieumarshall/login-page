@@ -6,16 +6,19 @@ entropy = 3.5
 threshold = 3.5
 
 [[rules]]
+id = "exclude-node-modules"
 description = "Exclude npm lockfile"
 regex = "^node_modules/"
 tags = ["exclude"]
 
 [[rules]]
+id = "exclude-pycache"
 description = "Exclude Python cache"
 regex = "^__pycache__/"
 tags = ["exclude"]
 
 [[rules]]
+id = "exclude-venv"
 description = "Exclude venv"
 regex = "^.venv/"
 tags = ["exclude"]
