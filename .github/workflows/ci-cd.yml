@@ -100,7 +100,7 @@ jobs:
       - name: Generate SBOM with pip list
         run: |
           echo "Generating SBOM from installed packages..."
-          pip list --format=json > sbom-python.json
+          uv pip list --format=json > sbom-python.json
           echo "✅ Python SBOM generated"
 
       - name: Generate Node.js SBOM
