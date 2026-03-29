@@ -34,4 +34,9 @@ dev = [
     "ty",
     "pip-audit>=2.6",
     "pip-licenses>=4.3",
+    "bandit>=1.7",
+]
+
+ci = [
+    "semgrep",
 ]
